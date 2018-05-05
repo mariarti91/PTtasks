@@ -1,6 +1,19 @@
 #!/usr/bin/env python3
 
 import paramiko
+import json
+
+#config data
+_config = None
+
+def get_config():
+	"""import config from _config.json file"""
+	global _config
+	if not _config:
+		with open('env.json', 'r') as f:
+			#TODO: add checking for config file existing
+			_config = json.load(f)
+	return _config
 
 class UnknownTransport(Exception):
 	""" unknown transport exception """
@@ -65,32 +78,21 @@ class SSHClient:
 			sftp.close()
 		return data
 
-def get_connection(transport_name, host, port, login, password):
-	avalible_transports = ['ssh']
+#TODO: add elementar checking. this look like students handmade =(
+def get_connection( transport_name
+	              , host=None
+	              , port=None
+	              , login=None
+	              , password=None):
+	"""instans transport object"""
+	avalible_transports = ['SSH']
+	transport_name = transport_name.upper()
 	if transport_name not in avalible_transports:
 		raise UnknownTransport(transport_name, "unknown transport")
+
+	if not host: host = get_config()['host']
+	if not port: port = get_config()['transports'][transport_name]['port']
+	if not login: login = get_config()['transports'][transport_name]['login']
+	if not password: password = get_config()['transports'][transport_name]['password']
+
 	return SSHClient(host, port, login, password)
-
-if __name__ == '__main__':
-
-	try:
-		with get_connection('ssh', 'localhost', 22022, 'root', 'pwd') as sshclient:
-			i,o,e = sshclient.exec('ls')
-			#i,o,e = sshclient.exec('ls-la')
-			res = o.read().decode('utf-8')
-			print(res, end='')
-			print(sshclient.get_file('file.txt').decode('utf-8'), end='')
-			#print(sshclient.get_file('/etc/passw'))
-
-	except UnknownTransport as e:
-		print('UnknownTransport expression')
-		print(e.message, e.expression)
-	except TransportError as e:
-		print('TransportError expression')
-		print(e.message, e.expression)
-	except TransportConnetionError as e:
-		print('TransportConnetionError')
-		print(e.message, e.expression)
-	except Exception as e:
-		print('UnknownException')
-		print(str(e))
