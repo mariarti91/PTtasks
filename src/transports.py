@@ -79,7 +79,7 @@ class SSHClient:
 		return data
 
 #TODO: add elementar checking. this look like students handmade =(
-def get_connection( transport_name
+def get_transport( transport_name
 	              , host=None
 	              , port=None
 	              , login=None
