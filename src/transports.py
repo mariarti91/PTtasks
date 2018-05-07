@@ -2,6 +2,7 @@
 
 import paramiko
 import json
+import sqlite3
 
 #config data
 _config = None
@@ -78,6 +79,24 @@ class SSHClient:
 			sftp.close()
 		return data
 
+class SQLClient:
+	""" sql transport """
+	def __init__(self, host, port, login, password):
+		self.host 		= host
+		self.port 		= port
+		self.login 		= login
+		self.password 	= password
+	
+	def __enter__(self):
+		return self
+
+	def __exit__(self, exc_type, exc_value, exc_traceback):
+		pass
+
+	def sqlexec(self, query):
+		pass
+
+
 #TODO: add elementar checking. this look like students handmade =(
 def get_transport( transport_name
 	              , host=None
@@ -85,7 +104,7 @@ def get_transport( transport_name
 	              , login=None
 	              , password=None):
 	"""instans transport object"""
-	avalible_transports = ['SSH']
+	avalible_transports = {'SSH' : SSHClient, 'SQL': SQLClient}
 	transport_name = transport_name.upper()
 	if transport_name not in avalible_transports:
 		raise UnknownTransport(transport_name, "unknown transport")
@@ -95,4 +114,4 @@ def get_transport( transport_name
 	if not login: login = get_config()['transports'][transport_name]['login']
 	if not password: password = get_config()['transports'][transport_name]['password']
 
-	return SSHClient(host, port, login, password)
+	return avalible_transports[transport_name](host, port, login, password)
